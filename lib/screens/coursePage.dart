@@ -1,104 +1,100 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-
-import '../models/ChatMessage.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import '../widgets/actionButtonBar.dart';
+import '../widgets/chatBox.dart';
 
 class CoursePage extends StatefulWidget {
-  const CoursePage({super.key});
+  const CoursePage(
+      {super.key,
+      this.initialPrompt = const {
+        "content": "Hello I am John, how are you?",
+        "role": "assistant"
+      }});
+
+  final Map<String, String> initialPrompt;
 
   @override
   State<CoursePage> createState() => _CoursePageState();
 }
 
 class _CoursePageState extends State<CoursePage> {
-  Column _buildButtonColumn(ColorScheme colors, IconData icon) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.mic),
-          onPressed: () {},
-          style: IconButton.styleFrom(
-            foregroundColor: colors.onSecondaryContainer,
-            backgroundColor: colors.secondaryContainer,
-            disabledBackgroundColor: colors.onSurface.withOpacity(0.12),
-            hoverColor: colors.onSecondaryContainer.withOpacity(0.08),
-            focusColor: colors.onSecondaryContainer.withOpacity(0.12),
-            highlightColor: colors.onSecondaryContainer.withOpacity(0.12),
-          ),
-        ),
-      ],
-    );
+  final urlAudio = Uri.https('api.openai.com', 'v1/audio/transcriptions');
+  final urlChat = Uri.https('api.openai.com', 'v1/chat/completions');
+  var messages = [];
+
+  _CoursePageState() {
+    messages = [const {
+      "content": "Hello I am John, how are you?",
+      "role": "assistant"
+    }];
   }
 
-  List<ChatMessage> messages = [
-    ChatMessage(messageContent: "Hello, Will", messageType: "receiver"),
-    ChatMessage(messageContent: "How have you been?", messageType: "receiver"),
-    ChatMessage(
-        messageContent: "Hey Kriss, I am doing fine dude. wbu?",
-        messageType: "sender"),
-    ChatMessage(messageContent: "ehhhh, doing OK.", messageType: "receiver"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Hey Kriss, I e?",
-        messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-    ChatMessage(
-        messageContent: "Is there any thing wrong?", messageType: "sender"),
-  ];
+  Future processAudioInput(File file) {
+    audioToText(file);
+    return Future.delayed(const Duration(seconds: 8));
+  }
+
+  void audioToText(File file) async {
+    var request = http.MultipartRequest('POST', urlAudio)
+      ..headers["Authorization"] =
+          "Bearer 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"
+      ..fields['model'] = 'whisper-1'
+      ..files.add(http.MultipartFile.fromBytes(
+          "file", await file.readAsBytes(),
+          filename: "audio.m4a", contentType: MediaType("audio", "m4a")));
+    var response = await request.send();
+
+    var transcript = json.decode(await response.stream.bytesToString())["text"];
+
+    if (response.statusCode != 200) {
+      developer.log('audio error');
+    } else {
+      getModelResponse(transcript);
+      setState(() {
+        messages.add({"role": "user", "content": transcript});
+      });
+    }
+  }
+
+  void getModelResponse(String text) async {
+    Map data = {
+      'model': 'gpt-3.5-turbo',
+      "messages": [
+        ...messages,
+        {"role": "user", "content": text}
+      ],
+      "user": "todo",
+      // hyper parameters
+      "temperature": 1,
+      "top_p": 1,
+      "max_tokens": 2000,
+      "presence_penalty": 0.5,
+      "frequency_penalty": 1,
+    };
+
+    var response = await http.post(urlChat,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization":
+              "Bearer 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"
+        },
+        body: json.encode(data));
+    if (response.statusCode != 200) {
+      developer.log('chat error');
+    } else {
+      var body = json.decode(response.body);
+      setState(() {
+        messages.add(body["choices"].map((choice) => choice["message"]).toList()[0]);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget chatHistory = Container(
-      padding: const EdgeInsets.all(32),
-    );
-
-    ColorScheme colors = Theme.of(context).colorScheme;
-    Widget interactionBar = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildButtonColumn(colors, Icons.mic),
-      ],
-    );
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -106,14 +102,14 @@ class _CoursePageState extends State<CoursePage> {
         backgroundColor: Colors.white,
         flexibleSpace: SafeArea(
           child: Container(
-            padding: EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16),
             child: Row(
               children: <Widget>[
                 IconButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.arrow_back,
                     color: Colors.black,
                   ),
@@ -122,7 +118,7 @@ class _CoursePageState extends State<CoursePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
+                    children: const <Widget>[
                       Text(
                         "Introductions",
                         style: TextStyle(
@@ -131,7 +127,7 @@ class _CoursePageState extends State<CoursePage> {
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: Colors.black54,
                 ),
@@ -142,55 +138,10 @@ class _CoursePageState extends State<CoursePage> {
       ),
       body: Stack(
         children: <Widget>[
-          ListView.builder(
-            itemCount: messages.length,
-            shrinkWrap: true,
-            padding: EdgeInsets.only(top: 10, bottom: 10),
-            itemBuilder: (context, index) {
-              return Container(
-                padding:
-                    EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
-                child: Align(
-                  alignment: (messages[index].messageType == "receiver"
-                      ? Alignment.topLeft
-                      : Alignment.topRight),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: (messages[index].messageType == "receiver"
-                          ? Colors.grey.shade200
-                          : Colors.blue[200]),
-                    ),
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      messages[index].messageContent,
-                      style: TextStyle(fontSize: 15),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-                padding: EdgeInsets.only(left: 10, bottom: 15, top: 10),
-                height: 100,
-                width: double.infinity,
-                color: Colors.white,
-                child: interactionBar
-            ),
-          ),
+          ChatBox(messages: messages),
+          ActionButtonBar(recordingFinished: processAudioInput)
         ],
       ),
-      /*
-        body: Column(
-          children: [
-            chatHistory,
-            interactionBar,
-          ],
-        ),
-        */
     );
   }
 }

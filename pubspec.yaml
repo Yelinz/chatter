@@ -34,6 +34,7 @@ dependencies:
   record: ^4.4.4
   permission_handler: ^10.2.0
   cupertino_icons: ^1.0.2
+  path_provider: ^2.0.13
 
 dev_dependencies:
   flutter_test:
