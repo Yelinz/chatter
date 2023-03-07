@@ -26,7 +26,9 @@ class _CoursePageState extends State<CoursePage> {
   final urlChat = Uri.https('api.openai.com', 'v1/chat/completions');
   var messages = [];
 
-  _CoursePageState() {
+  @override
+  initState() {
+    super.initState();
     messages = [const {
       "content": "Hello I am John, how are you?",
       "role": "assistant"

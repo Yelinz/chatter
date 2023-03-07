@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -14,6 +15,8 @@ class MessageBox extends StatefulWidget {
 class _MessageBox extends State<MessageBox> {
   final urlTTS = Uri.https(
       "switzerlandnorth.tts.speech.microsoft.com", "cognitiveservices/v1");
+  final player = AudioPlayer();
+  String translation = "";
 
   void textToSpeech() async {
     // TODO: Cache audio, as it stays the same, save in tmp
@@ -37,7 +40,12 @@ class _MessageBox extends State<MessageBox> {
   }
 
   void playAudio() {
+    player.stop();
+    player.play(AssetSource(""));
+  }
 
+  void translateContent() {
+    translation = widget.message["content"];
   }
 
   Widget getMessageBox() {
@@ -75,10 +83,19 @@ class _MessageBox extends State<MessageBox> {
                 Row(
                   children: [
                     IconButton(
-                        onPressed: () {}, icon: const Icon(Icons.volume_up)),
+                        onPressed: playAudio,
+                        icon: const Icon(Icons.volume_up)),
                     IconButton(
-                        onPressed: () {}, icon: const Icon(Icons.translate))
+                        onPressed: translateContent,
+                        icon: const Icon(Icons.translate))
                   ],
+                ),
+                Visibility(
+                  visible: translation != "",
+                  child: Text(
+                    translation,
+                    style: const TextStyle(fontSize: 13),
+                  ),
                 )
               ],
             ),
@@ -91,5 +108,11 @@ class _MessageBox extends State<MessageBox> {
     return Container(
         padding: const EdgeInsets.only(left: 14, right: 14, top: 10),
         child: getMessageBox());
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
   }
 }
