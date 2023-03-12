@@ -38,7 +38,7 @@ class _ButtonBar extends State<ActionButtonBar> {
 
   RecordingStatus status = RecordingStatus.idle;
   final record = Record();
-  File ?file;
+  File? file;
 
   void startRecording() async {
     // Check and request permission
@@ -79,16 +79,17 @@ class _ButtonBar extends State<ActionButtonBar> {
 
     var actions = <Widget>[
       _buildButtonColumn(colors, Icons.mic, startRecording),
+      // add button to display hints
+      // hint generation by feeding the current chat to model and generate example responses
     ];
 
     if (status == RecordingStatus.recording) {
       actions = <Widget>[
-        _buildButtonColumn(
-            colors, Icons.delete, cancelRecording),
+        _buildButtonColumn(colors, Icons.delete, cancelRecording),
         _buildButtonColumn(colors, Icons.check, stopRecording),
       ];
     } else if (status == RecordingStatus.loading) {
-      actions = <Widget>[CircularProgressIndicator()];
+      actions = <Widget>[const CircularProgressIndicator()];
     }
 
     return Align(
@@ -100,9 +101,6 @@ class _ButtonBar extends State<ActionButtonBar> {
             color: Colors.white,
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children:actions
-            )
-        )
-    );
+                children: actions)));
   }
 }

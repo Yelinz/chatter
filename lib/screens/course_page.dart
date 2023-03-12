@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as developer;
+import 'package:chatter/env/env.dart';
+import 'package:chatter/models/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -8,14 +10,9 @@ import '../widgets/actionButtonBar.dart';
 import '../widgets/chatBox.dart';
 
 class CoursePage extends StatefulWidget {
-  const CoursePage(
-      {super.key,
-      this.initialPrompt = const {
-        "content": "Hello I am John, how are you?",
-        "role": "assistant"
-      }});
+  const CoursePage({super.key, required this.initialPrompts});
 
-  final Map<String, String> initialPrompt;
+  final List<ChatMessage> initialPrompts;
 
   @override
   State<CoursePage> createState() => _CoursePageState();
@@ -24,15 +21,12 @@ class CoursePage extends StatefulWidget {
 class _CoursePageState extends State<CoursePage> {
   final urlAudio = Uri.https('api.openai.com', 'v1/audio/transcriptions');
   final urlChat = Uri.https('api.openai.com', 'v1/chat/completions');
-  var messages = [];
+  List<ChatMessage> messages = <ChatMessage>[];
 
   @override
   initState() {
     super.initState();
-    messages = [const {
-      "content": "Hello I am John, how are you?",
-      "role": "assistant"
-    }];
+    messages = widget.initialPrompts;
   }
 
   Future processAudioInput(File file) {
@@ -42,11 +36,9 @@ class _CoursePageState extends State<CoursePage> {
 
   void audioToText(File file) async {
     var request = http.MultipartRequest('POST', urlAudio)
-      ..headers["Authorization"] =
-          "Bearer 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"
+      ..headers["Authorization"] = "Bearer ${Env.openAiKey}"
       ..fields['model'] = 'whisper-1'
-      ..files.add(http.MultipartFile.fromBytes(
-          "file", await file.readAsBytes(),
+      ..files.add(http.MultipartFile.fromBytes("file", await file.readAsBytes(),
           filename: "audio.m4a", contentType: MediaType("audio", "m4a")));
     var response = await request.send();
 
@@ -57,7 +49,7 @@ class _CoursePageState extends State<CoursePage> {
     } else {
       getModelResponse(transcript);
       setState(() {
-        messages.add({"role": "user", "content": transcript});
+        messages.add(ChatMessage.fromContent(transcript));
       });
     }
   }
@@ -66,7 +58,7 @@ class _CoursePageState extends State<CoursePage> {
     Map data = {
       'model': 'gpt-3.5-turbo',
       "messages": [
-        ...messages,
+        ...(messages.map((e) => e.toJSON()).toList()),
         {"role": "user", "content": text}
       ],
       "user": "todo",
@@ -81,8 +73,7 @@ class _CoursePageState extends State<CoursePage> {
     var response = await http.post(urlChat,
         headers: {
           "Content-Type": "application/json",
-          "Authorization":
-              "Bearer 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"
+          "Authorization": "Bearer ${Env.openAiKey}"
         },
         body: json.encode(data));
     if (response.statusCode != 200) {
@@ -90,7 +81,9 @@ class _CoursePageState extends State<CoursePage> {
     } else {
       var body = json.decode(response.body);
       setState(() {
-        messages.add(body["choices"].map((choice) => choice["message"]).toList()[0]);
+        messages.add(body["choices"]
+            .map((choice) => ChatMessage.fromMessage(choice["message"]))
+            .toList()[0]);
       });
     }
   }
