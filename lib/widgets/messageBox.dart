@@ -9,6 +9,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:wavenet/wavenet.dart';
 
 class MessageBox extends StatefulWidget {
   const MessageBox({super.key, required this.message});
@@ -20,39 +21,24 @@ class MessageBox extends StatefulWidget {
 }
 
 class _MessageBox extends State<MessageBox> {
-  final urlTTS = Uri.https(
-      "switzerlandnorth.tts.speech.microsoft.com", "cognitiveservices/v1");
   final urlTranslation = Uri.https("api-free.deepl.com", "v2/translate");
   final player = AudioPlayer();
   String translation = "";
 
   void textToAudio() async {
-    Directory tempDir = await getTemporaryDirectory();
-    String tempPath = tempDir.path;
-    var file = File(
-        '$tempPath/${base64.encode(utf8.encode(widget.message.content!))}');
+    developer.log('start audio');
+    TextToSpeechService service = TextToSpeechService(Env.gcpKey);
+    File mp3 = await service.textToSpeech(
+      text: widget.message.content!,
+      voiceName: 'en-US-Neural2-A',
+      audioEncoding: 'MP3',
+      languageCode: 'en-us',
+      pitch: 0.0,
+      speakingRate: 1.0,
+    );
 
-    if (!(await file.exists())) {
-      var response = await http.post(urlTTS, headers: {
-        "Content-Type": "application/ssml+xml",
-        "X-Microsoft-OutputForma": "audio-16khz-128kbitrate-mono-mp3",
-        "Ocp-Apim-Subscription-Key": " ${Env.azureKey}"
-      }, body: """
-          '<speak version='\''1.0'\'' xml:lang='\''en-US'\''>
-            <voice xml:lang='\''en-US'\'' xml:gender='\''Female'\'' name='\''en-US-JennyNeural'\''>
-              ${widget.message.content}
-            </voice>
-          </speak>'
-         """);
-
-      if (response.statusCode != 200) {
-        developer.log('tts error');
-      } else {
-        await file.writeAsBytes(response.bodyBytes);
-      }
-    }
-
-    await player.play(DeviceFileSource(file.path));
+    developer.log(mp3.path);
+    await player.play(DeviceFileSource(mp3.path));
   }
 
   void playAudio() {

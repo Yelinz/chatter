@@ -10,4 +10,6 @@ abstract class Env {
   static final azureKey = _Env.azureKey;
   @EnviedField(varName: 'DEEPL_KEY', obfuscate: true)
   static final deeplKey = _Env.deeplKey;
+  @EnviedField(varName: "GCP_KEY", obfuscate: true)
+  static final gcpKey = _Env.gcpKey;
 }
