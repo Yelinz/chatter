@@ -14,7 +14,7 @@ class ChatMessage {
 
   ChatMessage.fromMessage(Map message) {
     content = message["content"];
-    role = message["role"];
+    role = MessageRole.values.byName(message["role"]);
   }
 
   ChatMessage.fromContent(String this.content) {
@@ -23,6 +23,6 @@ class ChatMessage {
 
   Map toJSON() {
     // TODO: api docs mentions name parameter for system messages, simulating the the input and ouput
-    return {"role": role.toString(), "content": content};
+    return {"role": role.toString().split('.').last, "content": content};
   }
 }

@@ -1,5 +1,4 @@
 import 'package:chatter/screens/course_overview_page.dart';
-import 'package:chatter/screens/course_page.dart';
 import 'package:chatter/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 
@@ -16,18 +15,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  Widget _selectedPage = CourseOverviewPage();
+  Widget _selectedPage = const CourseOverviewPage();
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
 
       if (index == 0) {
-        _selectedPage = CourseOverviewPage();
+        _selectedPage = const CourseOverviewPage();
       } else if (index == 1) {
-        _selectedPage = ChatPage();
+        _selectedPage = const ChatPage();
       } else if (index == 2) {
-        _selectedPage = SettingsPage();
+        _selectedPage = const SettingsPage();
       }
     });
   }
