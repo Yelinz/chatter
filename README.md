@@ -2,6 +2,8 @@
 
 Chatter application
 
+flutter build apk
+
 ## FAQ
 
 FATAL EXCEPTION: ScreenDecorations

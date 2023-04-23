@@ -73,12 +73,17 @@ class _ButtonBar extends State<ActionButtonBar> {
     });
   }
 
+  void showSuggestions() {
+
+  }
+
   @override
   Widget build(BuildContext context) {
     ColorScheme colors = Theme.of(context).colorScheme;
 
     var actions = <Widget>[
       _buildButtonColumn(colors, Icons.mic, startRecording),
+      _buildButtonColumn(colors, Icons.question_mark, showSuggestions),
       // add button to display hints
       // hint generation by feeding the current chat to model and generate example responses
     ];

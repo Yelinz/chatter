@@ -23,21 +23,34 @@ class _MessageBox extends State<MessageBox> {
   final urlTranslation = Uri.https("api-free.deepl.com", "v2/translate");
   final player = AudioPlayer();
   String translation = "";
+  File? audio;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (widget.message.role == MessageRole.assistant) {
+      playAudio();
+    }
+  }
 
   void textToAudio() async {
     developer.log('start audio');
-    TextToSpeechService service = TextToSpeechService(Env.gcpKey);
-    File mp3 = await service.textToSpeech(
-      text: widget.message.content!,
-      voiceName: 'en-US-Neural2-A',
-      audioEncoding: 'MP3',
-      languageCode: 'en-us',
-      pitch: 0.0,
-      speakingRate: 1.0,
-    );
+    if (audio == null) {
+      TextToSpeechService service = TextToSpeechService(Env.gcpKey);
+      audio = await service.textToSpeech(
+        text: widget.message.content!,
+        voiceName: 'en-US-Neural2-A',
+        audioEncoding: 'MP3',
+        languageCode: 'en-us',
+        pitch: 0.0,
+        speakingRate: 1.0,
+      );
+    }
 
-    developer.log(mp3.path);
-    await player.play(DeviceFileSource(mp3.path));
+
+    developer.log(audio!.path);
+    await player.play(DeviceFileSource(audio!.path));
   }
 
   void playAudio() {
