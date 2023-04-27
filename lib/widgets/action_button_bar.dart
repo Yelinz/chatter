@@ -39,7 +39,6 @@ class _ButtonBar extends State<ActionButtonBar> {
   RecordingStatus status = RecordingStatus.idle;
   final record = Record();
   File? file;
-  bool suggestionsVisible = false;
 
   void startRecording() async {
     // Check and request permission
@@ -75,9 +74,34 @@ class _ButtonBar extends State<ActionButtonBar> {
   }
 
   void showSuggestions() {
-    setState(() {
-      suggestionsVisible = true;
-    });
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        // create custom list items instead later to facilitate translation and audio
+        return ListView(
+          children: const <Widget>[
+            Card(
+              child: ListTile(
+                title: Text('I am doing fine, how about you?'),
+                trailing: Icon(Icons.translate),
+              ),
+            ),
+            Card(
+              child: ListTile(
+                title: Text('Goodbye see you later.'),
+                trailing: Icon(Icons.translate),
+              ),
+            ),
+            Card(
+              child: ListTile(
+                title: Text('Thank you.'),
+                trailing: Icon(Icons.translate),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
