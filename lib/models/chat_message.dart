@@ -13,7 +13,18 @@ class ChatMessage {
       {required this.content, required this.role, this.visibility = true});
 
   ChatMessage.fromMessage(Map message) {
-    content = message["content"];
+    String fullContent = message["content"];
+
+    RegExp exp = RegExp(r"^\[A\](.+)\[B\](.+)\[C\](.+)$", dotAll: true);
+    Iterable<Match> matches = exp.allMatches(fullContent);
+
+    if (matches.isNotEmpty) {
+      content = matches.elementAt(0).group(1)?.trim();
+      translation = matches.elementAt(0).group(2)?.trim();
+    } else {
+      content = fullContent;
+    }
+
     role = MessageRole.values.byName(message["role"]);
   }
 

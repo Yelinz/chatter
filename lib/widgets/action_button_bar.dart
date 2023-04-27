@@ -39,6 +39,7 @@ class _ButtonBar extends State<ActionButtonBar> {
   RecordingStatus status = RecordingStatus.idle;
   final record = Record();
   File? file;
+  bool suggestionsVisible = false;
 
   void startRecording() async {
     // Check and request permission
@@ -74,7 +75,9 @@ class _ButtonBar extends State<ActionButtonBar> {
   }
 
   void showSuggestions() {
-
+    setState(() {
+      suggestionsVisible = true;
+    });
   }
 
   @override

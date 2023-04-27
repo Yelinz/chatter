@@ -22,7 +22,7 @@ class MessageBox extends StatefulWidget {
 class _MessageBox extends State<MessageBox> {
   final urlTranslation = Uri.https("api-free.deepl.com", "v2/translate");
   final player = AudioPlayer();
-  String translation = "";
+  String? translation;
   File? audio;
 
   @override
@@ -34,6 +34,7 @@ class _MessageBox extends State<MessageBox> {
     }
   }
 
+  // move this into message model
   void textToAudio() async {
     developer.log('start audio');
     if (audio == null) {
@@ -59,6 +60,13 @@ class _MessageBox extends State<MessageBox> {
   }
 
   void translateContent() async {
+    if (widget.message.translation != null) {
+      setState(() {
+        translation = widget.message.translation!;
+      });
+      return;
+    }
+
     var response = await http.post(urlTranslation, headers: {
       "Authorization": "DeepL-Auth-Key ${Env.deeplKey}"
     }, body: {
@@ -120,7 +128,7 @@ class _MessageBox extends State<MessageBox> {
                         onPressed: playAudio,
                         icon: const Icon(Icons.volume_up)),
                     IconButton(
-                        onPressed: translation != "" ? null : translateContent,
+                        onPressed: translation != null ? null : translateContent,
                         icon: const Icon(Icons.translate)),
                   ],
                 ),
@@ -130,7 +138,7 @@ class _MessageBox extends State<MessageBox> {
                       padding: const EdgeInsets.only(
                           left: 16, right: 16, bottom: 16),
                       child: Text(
-                        translation,
+                        translation == null ? "" : translation!,
                         style: const TextStyle(fontSize: 15),
                       ),
                     ))

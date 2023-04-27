@@ -22,10 +22,12 @@ class _ChatBox extends State<ChatBox> {
   final urlAudio = Uri.https('api.openai.com', 'v1/audio/transcriptions');
   final urlChat = Uri.https('api.openai.com', 'v1/chat/completions');
   List<ChatMessage> messages = <ChatMessage>[];
+  ChatMessage? initialMessage;
 
   @override
   initState() {
     super.initState();
+    initialMessage = widget.messages.first;
     messages =
         widget.messages.where((element) => element.visibility!).toList();
   }
@@ -65,6 +67,7 @@ class _ChatBox extends State<ChatBox> {
     Map data = {
       'model': 'gpt-3.5-turbo',
       "messages": [
+        initialMessage!.toJSON(),
         ...(messages.map((e) => e.toJSON()).toList()),
       ],
       "user": "todo",
@@ -75,6 +78,8 @@ class _ChatBox extends State<ChatBox> {
       "presence_penalty": 0.5,
       "frequency_penalty": 1,
     };
+
+    developer.log(data.toString());
 
     var response = await http.post(urlChat,
         headers: {

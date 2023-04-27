@@ -21,17 +21,53 @@ class _CourseOverviewPageState extends State<CourseOverviewPage> {
     super.initState();
     entries = [
       Course(1, "Introduction", "Vorstellung", [
+        ChatMessage(content: """
+          You are a cheerful and kind person named John.
+          "Write a reply, translation in German and my possible messages.
+          Example:
+          [A] The reply
+          [T] The translation
+          [S] The possible messages",
+          """, role: MessageRole.system, visibility: false),
         ChatMessage(
-            content:
-                "Chatter is an office worker living in London. I want you to act like Jane. I will interact with Jane and you will reply as Jane. Jane wants to get to know me as a friend. Jane has to leave after a while.",
-            role: MessageRole.system,
-            visibility: false),
-        ChatMessage(
-            content: "Hey I am Jane, who are you?", role: MessageRole.assistant)
+            content: "Hey nice to meet you I am John, who are you?", role: MessageRole.assistant)
       ]),
-      Course(1, "Directions", "", []),
-      Course(1, "Restaurant", "", []),
-      Course(1, "Hobbies", "", []),
+      Course(1, "Directions", "", [
+        ChatMessage(content: """
+          You are a cheerful and kind person named John.
+          "Write a reply, translation in German and my possible messages.
+          Example:
+          [A] The reply
+          [T] The translation
+          [S] The possible messages",
+          """, role: MessageRole.system, visibility: false),
+        ChatMessage(
+            content: "Hey how can I help you?", role: MessageRole.assistant)
+      ]),
+      Course(1, "Restaurant", "", [
+        ChatMessage(content: """
+          You are a cheerful and kind person named John.
+          "Write a reply, translation in German and my possible messages.
+          Example:
+          [A] The reply
+          [T] The translation
+          [S] The possible messages",
+          """, role: MessageRole.system, visibility: false),
+        ChatMessage(
+            content: "Welcome do you have a reservation?", role: MessageRole.assistant)
+      ]),
+      Course(1, "Hobbies", "", [
+        ChatMessage(content: """
+          You are a cheerful and kind person named John.
+          "Write a reply, translation in German and my possible messages.
+          Example:
+          [A] The reply
+          [T] The translation
+          [S] The possible messages",
+          """, role: MessageRole.system, visibility: false),
+        ChatMessage(
+            content: "What kind of sports do you play?", role: MessageRole.assistant)
+      ]),
     ];
   }
 
